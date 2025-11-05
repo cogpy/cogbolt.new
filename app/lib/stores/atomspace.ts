@@ -70,7 +70,7 @@ export class AtomSpaceStore {
    * Create a new atom in the AtomSpace
    */
   createAtom(type: AtomType, name: string, outgoing?: string[], metadata?: Record<string, any>): Atom {
-    const id = `atom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `atom_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const atom: Atom = {
       id,
       type,
@@ -143,7 +143,7 @@ export class AtomSpaceStore {
    * Create a cognitive process
    */
   createProcess(name: string, type: CognitiveProcess['type'], targetAtoms: string[] = []): CognitiveProcess {
-    const id = `process_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `process_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const process: CognitiveProcess = {
       id,
       name,

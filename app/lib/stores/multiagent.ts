@@ -106,7 +106,7 @@ export class MultiAgentStore {
    * Create a new autonomous agent
    */
   createAgent(name: string, role: AgentRole, capabilities: string[]): AutonomousAgent {
-    const id = `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `agent_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const agent: AutonomousAgent = {
       id,
       name,
@@ -162,7 +162,7 @@ export class MultiAgentStore {
    * Create a new task
    */
   createTask(description: string, priority: number = 5): AgentTask {
-    const id = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `task_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const task: AgentTask = {
       id,
       description,
@@ -229,7 +229,7 @@ export class MultiAgentStore {
    */
   sendMessage(from: string, to: string, type: Message['type'], content: any) {
     const message: Message = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       from,
       to,
       type,
@@ -259,7 +259,7 @@ export class MultiAgentStore {
    * Create a collaboration between agents
    */
   createCollaboration(participantIds: string[], goal: string): Collaboration {
-    const id = `collab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `collab_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const collaboration: Collaboration = {
       id,
       participants: participantIds,

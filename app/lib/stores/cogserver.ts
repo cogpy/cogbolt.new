@@ -235,7 +235,7 @@ export class CogServerStore {
    * Register a cognitive agent
    */
   registerAgent(name: string, type: AgentConfig['type'], frequency: number = 1): string {
-    const id = `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `agent_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const agent: AgentConfig = {
       id,
       name,
