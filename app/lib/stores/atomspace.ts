@@ -44,16 +44,14 @@ export interface CognitiveProcess {
 export class AtomSpaceStore {
   // Core AtomSpace storage
   atoms: MapStore<Record<string, Atom>> = import.meta.hot?.data.atoms ?? map({});
-  
+
   // Cognitive processes
   processes: MapStore<Record<string, CognitiveProcess>> = import.meta.hot?.data.processes ?? map({});
-  
+
   // Index for quick lookups
-  atomsByType: WritableAtom<Map<AtomType, Set<string>>> = 
-    import.meta.hot?.data.atomsByType ?? atom(new Map());
-  
-  atomsByName: WritableAtom<Map<string, string>> = 
-    import.meta.hot?.data.atomsByName ?? atom(new Map());
+  atomsByType: WritableAtom<Map<AtomType, Set<string>>> = import.meta.hot?.data.atomsByType ?? atom(new Map());
+
+  atomsByName: WritableAtom<Map<string, string>> = import.meta.hot?.data.atomsByName ?? atom(new Map());
 
   // File-to-Atom mappings
   fileAtomMap: MapStore<Record<string, string>> = import.meta.hot?.data.fileAtomMap ?? map({});
@@ -84,12 +82,14 @@ export class AtomSpaceStore {
     };
 
     this.atoms.setKey(id, atom);
-    
+
     // Update indices
     const byType = this.atomsByType.get();
+
     if (!byType.has(type)) {
       byType.set(type, new Set());
     }
+
     byType.get(type)!.add(id);
     this.atomsByType.set(byType);
 
@@ -119,7 +119,9 @@ export class AtomSpaceStore {
    */
   getAtomsByType(type: AtomType): Atom[] {
     const ids = this.atomsByType.get().get(type) || new Set();
-    return Array.from(ids).map(id => this.atoms.get()[id]).filter(Boolean);
+    return Array.from(ids)
+      .map((id) => this.atoms.get()[id])
+      .filter(Boolean);
   }
 
   /**
@@ -127,6 +129,7 @@ export class AtomSpaceStore {
    */
   updateTruthValue(atomId: string, truthValue: Partial<TruthValue>) {
     const atom = this.getAtom(atomId);
+
     if (atom) {
       const updated = {
         ...atom,
@@ -139,11 +142,7 @@ export class AtomSpaceStore {
   /**
    * Create a cognitive process
    */
-  createProcess(
-    name: string,
-    type: CognitiveProcess['type'],
-    targetAtoms: string[] = []
-  ): CognitiveProcess {
+  createProcess(name: string, type: CognitiveProcess['type'], targetAtoms: string[] = []): CognitiveProcess {
     const id = `process_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const process: CognitiveProcess = {
       id,
@@ -156,6 +155,7 @@ export class AtomSpaceStore {
     };
 
     this.processes.setKey(id, process);
+
     return process;
   }
 
@@ -164,6 +164,7 @@ export class AtomSpaceStore {
    */
   updateProcess(processId: string, updates: Partial<CognitiveProcess>) {
     const process = this.processes.get()[processId];
+
     if (process) {
       this.processes.setKey(processId, { ...process, ...updates });
     }
@@ -177,7 +178,7 @@ export class AtomSpaceStore {
       if (dirent?.type === 'file') {
         // Create or update atom for this file
         const existingAtomId = this.fileAtomMap.get()[path];
-        
+
         if (!existingAtomId) {
           const fileAtom = this.createAtom('ConceptNode', path, undefined, {
             fileType: 'file',
@@ -188,7 +189,7 @@ export class AtomSpaceStore {
       } else if (dirent?.type === 'folder') {
         // Create atom for folder
         const existingAtomId = this.fileAtomMap.get()[path];
-        
+
         if (!existingAtomId) {
           const folderAtom = this.createAtom('ConceptNode', path, undefined, {
             fileType: 'folder',

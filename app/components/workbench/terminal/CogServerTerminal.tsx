@@ -25,7 +25,8 @@ export function useCogServerTerminal({ terminal }: CogServerTerminalProps) {
       // Check for CogServer mode toggle (Ctrl+G)
       if (data === '\x07') {
         // Ctrl+G
-        setCogMode(prev => !prev);
+        setCogMode((prev) => !prev);
+
         if (!cogMode) {
           terminal.write('\r\n\x1b[33m[CogServer Mode ON - Type "exit" to return]\x1b[0m\r\n');
           cogServerStore.connect(terminal);
@@ -34,7 +35,9 @@ export function useCogServerTerminal({ terminal }: CogServerTerminalProps) {
           terminal.write('\r\n\x1b[33m[CogServer Mode OFF]\x1b[0m\r\n');
           cogServerStore.disconnect();
         }
+
         setCommandBuffer('');
+
         return;
       }
 
@@ -46,14 +49,15 @@ export function useCogServerTerminal({ terminal }: CogServerTerminalProps) {
       if (data === '\r' || data === '\n') {
         // Enter key
         terminal.write('\r\n');
-        
+
         const command = commandBuffer.trim();
-        
+
         if (command === 'exit') {
           setCogMode(false);
           terminal.write('\x1b[33m[CogServer Mode OFF]\x1b[0m\r\n');
           cogServerStore.disconnect();
           setCommandBuffer('');
+
           return;
         }
 
@@ -64,12 +68,12 @@ export function useCogServerTerminal({ terminal }: CogServerTerminalProps) {
         } else {
           terminal.write('cog> ');
         }
-        
+
         setCommandBuffer('');
       } else if (data === '\x7F' || data === '\b') {
         // Backspace
         if (commandBuffer.length > 0) {
-          setCommandBuffer(prev => prev.slice(0, -1));
+          setCommandBuffer((prev) => prev.slice(0, -1));
           terminal.write('\b \b');
         }
       } else if (data === '\x03') {
@@ -79,7 +83,7 @@ export function useCogServerTerminal({ terminal }: CogServerTerminalProps) {
         terminal.write('cog> ');
       } else if (data >= ' ' && data <= '~') {
         // Printable characters
-        setCommandBuffer(prev => prev + data);
+        setCommandBuffer((prev) => prev + data);
         terminal.write(data);
       }
     };

@@ -63,16 +63,16 @@ export interface Collaboration {
 export class MultiAgentStore {
   // Agent registry
   agents: MapStore<Record<string, AutonomousAgent>> = import.meta.hot?.data.agents ?? map({});
-  
+
   // Task queue
   tasks: MapStore<Record<string, AgentTask>> = import.meta.hot?.data.tasks ?? map({});
-  
+
   // Message bus
   messages: WritableAtom<Message[]> = import.meta.hot?.data.messages ?? atom([]);
-  
+
   // Collaborations
   collaborations: MapStore<Record<string, Collaboration>> = import.meta.hot?.data.collaborations ?? map({});
-  
+
   // Orchestration state
   orchestrationActive: WritableAtom<boolean> = import.meta.hot?.data.orchestrationActive ?? atom(false);
 
@@ -127,10 +127,10 @@ export class MultiAgentStore {
     };
 
     this.agents.setKey(id, agent);
-    
+
     // Create a cognitive process for this agent
     atomSpaceStore.createProcess(`Agent: ${name}`, 'reasoning', []);
-    
+
     return agent;
   }
 
@@ -139,6 +139,7 @@ export class MultiAgentStore {
    */
   updateAgentState(agentId: string, state: AgentState) {
     const agent = this.agents.get()[agentId];
+
     if (agent) {
       this.agents.setKey(agentId, { ...agent, state });
     }
@@ -150,7 +151,7 @@ export class MultiAgentStore {
   assignTask(taskId: string, agentId: string) {
     const task = this.tasks.get()[taskId];
     const agent = this.agents.get()[agentId];
-    
+
     if (task && agent) {
       this.tasks.setKey(taskId, { ...task, assignedTo: agentId, status: 'in-progress' });
       this.agents.setKey(agentId, { ...agent, currentTask: taskId, state: 'acting' });
@@ -171,10 +172,10 @@ export class MultiAgentStore {
     };
 
     this.tasks.setKey(id, task);
-    
+
     // Auto-assign to best agent
     this.autoAssignTask(id);
-    
+
     return task;
   }
 
@@ -184,13 +185,15 @@ export class MultiAgentStore {
   private autoAssignTask(taskId: string) {
     const task = this.tasks.get()[taskId];
     const agents = Object.values(this.agents.get());
-    
+
     // Find idle agents
-    const idleAgents = agents.filter(a => a.state === 'idle');
-    
+    const idleAgents = agents.filter((a) => a.state === 'idle');
+
     if (idleAgents.length > 0 && task) {
-      // Simple assignment: pick first idle agent
-      // In a real system, this would use capability matching
+      /*
+       * Simple assignment: pick first idle agent
+       * In a real system, this would use capability matching
+       */
       const selectedAgent = idleAgents[0];
       this.assignTask(taskId, selectedAgent.id);
     }
@@ -201,11 +204,12 @@ export class MultiAgentStore {
    */
   completeTask(taskId: string, result?: any) {
     const task = this.tasks.get()[taskId];
-    
+
     if (task && task.assignedTo) {
       this.tasks.setKey(taskId, { ...task, status: 'completed', result });
-      
+
       const agent = this.agents.get()[task.assignedTo];
+
       if (agent) {
         this.agents.setKey(agent.id, {
           ...agent,
@@ -239,10 +243,11 @@ export class MultiAgentStore {
     // Update agent states
     const fromAgent = this.agents.get()[from];
     const toAgent = this.agents.get()[to];
-    
+
     if (fromAgent) {
       this.updateAgentState(from, 'communicating');
     }
+
     if (toAgent) {
       this.updateAgentState(to, 'communicating');
     }
@@ -265,6 +270,7 @@ export class MultiAgentStore {
     };
 
     this.collaborations.setKey(id, collaboration);
+
     return collaboration;
   }
 
@@ -273,6 +279,7 @@ export class MultiAgentStore {
    */
   addCollaborationMessage(collaborationId: string, message: Message) {
     const collab = this.collaborations.get()[collaborationId];
+
     if (collab) {
       this.collaborations.setKey(collaborationId, {
         ...collab,
@@ -286,9 +293,9 @@ export class MultiAgentStore {
    */
   startOrchestration() {
     this.orchestrationActive.set(true);
-    
+
     // Initialize agents
-    Object.values(this.agents.get()).forEach(agent => {
+    Object.values(this.agents.get()).forEach((agent) => {
       this.updateAgentState(agent.id, 'idle');
     });
   }
@@ -298,9 +305,9 @@ export class MultiAgentStore {
    */
   stopOrchestration() {
     this.orchestrationActive.set(false);
-    
+
     // Pause all agents
-    Object.values(this.agents.get()).forEach(agent => {
+    Object.values(this.agents.get()).forEach((agent) => {
       this.updateAgentState(agent.id, 'idle');
     });
   }
@@ -309,16 +316,14 @@ export class MultiAgentStore {
    * Get agent by role
    */
   getAgentsByRole(role: AgentRole): AutonomousAgent[] {
-    return Object.values(this.agents.get()).filter(a => a.role === role);
+    return Object.values(this.agents.get()).filter((a) => a.role === role);
   }
 
   /**
    * Get active tasks
    */
   getActiveTasks(): AgentTask[] {
-    return Object.values(this.tasks.get()).filter(
-      t => t.status === 'pending' || t.status === 'in-progress'
-    );
+    return Object.values(this.tasks.get()).filter((t) => t.status === 'pending' || t.status === 'in-progress');
   }
 
   /**
@@ -327,13 +332,13 @@ export class MultiAgentStore {
   getAgentStats() {
     const agents = Object.values(this.agents.get());
     const tasks = Object.values(this.tasks.get());
-    
+
     return {
       totalAgents: agents.length,
-      activeAgents: agents.filter(a => a.state !== 'idle').length,
+      activeAgents: agents.filter((a) => a.state !== 'idle').length,
       totalTasks: tasks.length,
-      completedTasks: tasks.filter(t => t.status === 'completed').length,
-      pendingTasks: tasks.filter(t => t.status === 'pending').length,
+      completedTasks: tasks.filter((t) => t.status === 'completed').length,
+      pendingTasks: tasks.filter((t) => t.status === 'pending').length,
       avgSuccessRate: agents.reduce((sum, a) => sum + a.performance.successRate, 0) / agents.length || 0,
     };
   }

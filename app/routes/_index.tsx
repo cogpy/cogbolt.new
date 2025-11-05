@@ -6,7 +6,13 @@ import { Header } from '~/components/header/Header';
 import { OpenCogPanel } from '~/components/opencog/OpenCogPanel';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Bolt - OpenCog Edition' }, { name: 'description', content: 'Talk with Bolt, an AI assistant with OpenCog cognitive architecture from StackBlitz' }];
+  return [
+    { title: 'Bolt - OpenCog Edition' },
+    {
+      name: 'description',
+      content: 'Talk with Bolt, an AI assistant with OpenCog cognitive architecture from StackBlitz',
+    },
+  ];
 };
 
 export const loader = () => json({});

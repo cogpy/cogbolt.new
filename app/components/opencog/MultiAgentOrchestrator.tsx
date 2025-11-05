@@ -68,9 +68,7 @@ export const MultiAgentOrchestrator = memo(() => {
     <div className="flex flex-col h-full bg-bolt-elements-background-depth-2">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-bolt-elements-borderColor">
-        <h2 className="text-lg font-semibold text-bolt-elements-textPrimary">
-          Multi-Agent Orchestration
-        </h2>
+        <h2 className="text-lg font-semibold text-bolt-elements-textPrimary">Multi-Agent Orchestration</h2>
         <button
           onClick={toggleOrchestration}
           className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
@@ -108,11 +106,9 @@ export const MultiAgentOrchestrator = memo(() => {
       <div className="flex-1 overflow-auto">
         {/* Agents Section */}
         <div className="p-4 border-b border-bolt-elements-borderColor">
-          <h3 className="text-sm font-semibold text-bolt-elements-textPrimary mb-3">
-            Autonomous Agents
-          </h3>
+          <h3 className="text-sm font-semibold text-bolt-elements-textPrimary mb-3">Autonomous Agents</h3>
           <div className="space-y-2">
-            {agentsList.map(agent => (
+            {agentsList.map((agent) => (
               <div
                 key={agent.id}
                 className="p-3 bg-bolt-elements-background-depth-3 rounded border border-bolt-elements-borderColor"
@@ -121,19 +117,13 @@ export const MultiAgentOrchestrator = memo(() => {
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{getRoleIcon(agent.role)}</span>
                     <div>
-                      <div className="text-sm font-medium text-bolt-elements-textPrimary">
-                        {agent.name}
-                      </div>
-                      <div className="text-xs text-bolt-elements-textSecondary">
-                        {agent.role}
-                      </div>
+                      <div className="text-sm font-medium text-bolt-elements-textPrimary">{agent.name}</div>
+                      <div className="text-xs text-bolt-elements-textSecondary">{agent.role}</div>
                     </div>
                   </div>
-                  <span className={`text-xs font-medium ${getStateColor(agent.state)}`}>
-                    {agent.state}
-                  </span>
+                  <span className={`text-xs font-medium ${getStateColor(agent.state)}`}>{agent.state}</span>
                 </div>
-                
+
                 {agent.currentTask && (
                   <div className="mt-2 pt-2 border-t border-bolt-elements-borderColor">
                     <div className="text-xs text-bolt-elements-textSecondary">
@@ -141,7 +131,7 @@ export const MultiAgentOrchestrator = memo(() => {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="mt-2 flex items-center gap-3 text-xs text-bolt-elements-textTertiary">
                   <span>✓ {agent.performance.tasksCompleted} tasks</span>
                   <span>• {agent.capabilities.length} capabilities</span>
@@ -153,28 +143,17 @@ export const MultiAgentOrchestrator = memo(() => {
 
         {/* Tasks Section */}
         <div className="p-4">
-          <h3 className="text-sm font-semibold text-bolt-elements-textPrimary mb-3">
-            Task Queue
-          </h3>
+          <h3 className="text-sm font-semibold text-bolt-elements-textPrimary mb-3">Task Queue</h3>
           {tasksList.length > 0 ? (
             <div className="space-y-2">
-              {tasksList.map(task => (
-                <div
-                  key={task.id}
-                  className={`p-3 rounded border ${getTaskStatusColor(task.status)}`}
-                >
+              {tasksList.map((task) => (
+                <div key={task.id} className={`p-3 rounded border ${getTaskStatusColor(task.status)}`}>
                   <div className="flex items-center justify-between mb-1">
-                    <div className="text-sm font-medium flex-1">
-                      {task.description}
-                    </div>
-                    <span className="text-xs ml-2">
-                      P{task.priority}
-                    </span>
+                    <div className="text-sm font-medium flex-1">{task.description}</div>
+                    <span className="text-xs ml-2">P{task.priority}</span>
                   </div>
                   {task.assignedTo && agents[task.assignedTo] && (
-                    <div className="text-xs mt-1 opacity-75">
-                      Assigned to: {agents[task.assignedTo].name}
-                    </div>
+                    <div className="text-xs mt-1 opacity-75">Assigned to: {agents[task.assignedTo].name}</div>
                   )}
                 </div>
               ))}

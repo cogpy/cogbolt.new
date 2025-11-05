@@ -4,8 +4,9 @@
  */
 import { useStore } from '@nanostores/react';
 import { motion } from 'framer-motion';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { workbenchStore } from '~/lib/stores/workbench';
+import { initializeOnWorkbenchOpen } from '~/lib/stores/opencog-demo';
 import { AtomSpaceViewer } from '../opencog/AtomSpaceViewer';
 import { MultiAgentOrchestrator } from '../opencog/MultiAgentOrchestrator';
 
@@ -14,6 +15,13 @@ export type OpenCogPanelType = 'atomspace' | 'agents' | 'none';
 export const OpenCogPanel = memo(() => {
   const showWorkbench = useStore(workbenchStore.showWorkbench);
   const [selectedPanel, setSelectedPanel] = useState<OpenCogPanelType>('atomspace');
+
+  // Initialize demo when workbench opens
+  useEffect(() => {
+    if (showWorkbench) {
+      initializeOnWorkbenchOpen();
+    }
+  }, [showWorkbench]);
 
   if (!showWorkbench) {
     return null;

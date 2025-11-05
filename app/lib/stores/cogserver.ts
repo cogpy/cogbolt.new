@@ -185,13 +185,13 @@ export class CogServerStore {
         const atoms = Object.keys(atomSpaceStore.atoms.get()).length;
         const processes = Object.keys(atomSpaceStore.processes.get()).length;
         const agents = this.agents.get().size;
-        const activeAgents = Array.from(this.agents.get().values()).filter(a => a.active).length;
+        const activeAgents = Array.from(this.agents.get().values()).filter((a) => a.active).length;
 
         terminal.write('\r\n=== CogServer Status ===\r\n');
         terminal.write(`\r\n  AtomSpace: ${atoms} atoms`);
         terminal.write(`\r\n  Processes: ${processes} active`);
         terminal.write(`\r\n  Agents: ${activeAgents}/${agents} active`);
-        terminal.write('\r\n  Connected: ${this.connected.get() ? 'Yes' : 'No'}`);
+        terminal.write(`\r\n  Connected: ${this.connected.get() ? 'Yes' : 'No'}`);
         terminal.write('\r\n\r\n');
       },
     });
