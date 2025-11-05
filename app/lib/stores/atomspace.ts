@@ -252,8 +252,11 @@ export class AtomSpaceStore {
       const data: AtomSpaceExport = JSON.parse(jsonData);
 
       // Validate version compatibility
-      if (data.version !== '1.0.0') {
-        console.warn('AtomSpace version mismatch, attempting to import anyway');
+      const supportedVersions = ['1.0.0'];
+
+      if (!supportedVersions.includes(data.version)) {
+        console.error(`Unsupported AtomSpace version: ${data.version}. Supported versions: ${supportedVersions.join(', ')}`);
+        return false;
       }
 
       // Clear existing data

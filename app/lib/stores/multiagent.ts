@@ -14,7 +14,7 @@ export type MessageContent =
   | { type: 'collaboration_started'; collaborationId: string; goal: string }
   | { type: 'collaboration_ended'; collaborationId: string; success: boolean }
   | { type: 'knowledge_shared'; atomCount: number }
-  | { helpType: string; context: HelpRequestContext }
+  | { type: 'help_request'; helpType: string; context: HelpRequestContext }
   | string
   | Record<string, unknown>;
 
@@ -74,6 +74,11 @@ export interface Collaboration {
   messages: Message[];
   timestamp: number;
 }
+
+// Task assignment scoring constants
+const ROLE_MATCH_BONUS = 50;
+const CURRENT_TASK_PENALTY = 30;
+const BASE_RESPONSE_TIME_BONUS = 100;
 
 export class MultiAgentStore {
   // Agent registry
@@ -426,22 +431,22 @@ export class MultiAgentStore {
 
       // Bonus for relevant capabilities
       if (task.description.toLowerCase().includes('plan')) {
-        score += agent.role === 'planner' ? 50 : 0;
+        score += agent.role === 'planner' ? ROLE_MATCH_BONUS : 0;
       } else if (task.description.toLowerCase().includes('execute') || task.description.toLowerCase().includes('code')) {
-        score += agent.role === 'executor' ? 50 : 0;
+        score += agent.role === 'executor' ? ROLE_MATCH_BONUS : 0;
       } else if (task.description.toLowerCase().includes('monitor') || task.description.toLowerCase().includes('check')) {
-        score += agent.role === 'monitor' ? 50 : 0;
+        score += agent.role === 'monitor' ? ROLE_MATCH_BONUS : 0;
       } else if (task.description.toLowerCase().includes('learn')) {
-        score += agent.role === 'learner' ? 50 : 0;
+        score += agent.role === 'learner' ? ROLE_MATCH_BONUS : 0;
       }
 
       // Penalize if agent already has a task
       if (agent.currentTask) {
-        score -= 30;
+        score -= CURRENT_TASK_PENALTY;
       }
 
       // Bonus for fast response time
-      score += 100 / (agent.performance.avgResponseTime + 1);
+      score += BASE_RESPONSE_TIME_BONUS / (agent.performance.avgResponseTime + 1);
 
       return { agent, score };
     });
@@ -490,7 +495,7 @@ export class MultiAgentStore {
 
     if (helpers.length > 0) {
       const helper = helpers[0];
-      this.sendMessage(requestingAgentId, helper.id, 'request', { helpType, context });
+      this.sendMessage(requestingAgentId, helper.id, 'request', { type: 'help_request', helpType, context });
 
       // Create a mini-collaboration
       this.createCollaboration([requestingAgentId, helper.id], `Help with: ${helpType}`);

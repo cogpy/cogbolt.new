@@ -85,14 +85,17 @@ jobs:
             }
 
       - name: Add deployment status
+        if: ${{ github.event.deployment }}
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: context.payload.deployment?.id || 0,
-              state: 'success',
-              environment_url: '${{ steps.cloudflare.outputs.url }}',
-              description: 'Preview deployment successful'
-            });
+            if (context.payload.deployment?.id) {
+              await github.rest.repos.createDeploymentStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: context.payload.deployment.id,
+                state: 'success',
+                environment_url: '${{ steps.cloudflare.outputs.url }}',
+                description: 'Preview deployment successful'
+              });
+            }
