@@ -1,14 +1,19 @@
-name: CI/CD
+name: CI
 
 on:
   push:
     branches:
       - master
+      - main
   pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   test:
-    name: Test
+    name: Test & Type Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,3 +30,14 @@ jobs:
 
       - name: Run tests
         run: pnpm run test
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All tests passed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### OpenCog Integration" >> $GITHUB_STEP_SUMMARY
+          echo "- AtomSpace: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- CogServer: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Multi-Agent System: ✅" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,98 @@
+name: Preview Deployment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  deployments: write
+
+jobs:
+  preview:
+    name: Deploy Preview to Cloudflare Pages
+    runs-on: ubuntu-latest
+    
+    # Only run on PRs from the same repository (skip forks for security)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup and Build
+        uses: ./.github/actions/setup-and-build
+
+      - name: Run tests before deployment
+        run: pnpm run test
+
+      - name: Deploy to Cloudflare Pages
+        id: cloudflare
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: cogbolt
+          directory: build/client
+          # Create a unique deployment for each PR
+          branch: pr-${{ github.event.pull_request.number }}
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Preview Deployment')
+            );
+            
+            const previewUrl = '${{ steps.cloudflare.outputs.url }}';
+            const body = `## 🚀 Preview Deployment
+            
+            **Preview URL**: ${previewUrl}
+            
+            ### OpenCog Features Available in Preview:
+            - 🧠 AtomSpace knowledge representation
+            - 🤖 Multi-agent orchestration system
+            - 💻 CogServer terminal integration (Ctrl+G)
+            - 🔄 Active cognitive processes
+            - 📊 Real-time visualization
+            
+            Built with commit ${context.sha.substring(0, 7)}
+            `;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Add deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id || 0,
+              state: 'success',
+              environment_url: '${{ steps.cloudflare.outputs.url }}',
+              description: 'Preview deployment successful'
+            });
