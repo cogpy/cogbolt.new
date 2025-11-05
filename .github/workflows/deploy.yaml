@@ -35,11 +35,11 @@ jobs:
 
       - name: Deploy to Cloudflare Pages (Production)
         id: cloudflare
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/pages-action@v1.5.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: cogbolt
+          projectName: cogboltnew
           directory: build/client
           branch: main
 
