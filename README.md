@@ -1,8 +1,20 @@
 [![Bolt.new: AI-Powered Full-Stack Web Development in the Browser](./public/social_preview_index.jpg)](https://bolt.new)
 
-# Bolt.new: AI-Powered Full-Stack Web Development in the Browser
+# Bolt.new with OpenCog: Cognitive AI-Powered Web Development
 
-Bolt.new is an AI-powered web development agent that allows you to prompt, run, edit, and deploy full-stack applications directly from your browser—no local setup required. If you're here to build your own AI-powered web dev agent using the Bolt open source codebase, [click here to get started!](./CONTRIBUTING.md)
+Bolt.new is an AI-powered web development agent that allows you to prompt, run, edit, and deploy full-stack applications directly from your browser—no local setup required. **This fork integrates OpenCog cognitive architecture** for autonomous multi-agent orchestration and knowledge representation.
+
+🧠 **[Read the OpenCog Integration Guide](./OPENCOG_README.md)** for detailed information about the cognitive architecture features.
+
+## What Makes This Fork Different
+
+In addition to all standard Bolt.new features, this fork includes:
+
+- **OpenCog AtomSpace**: Knowledge graph representation of your code, files, and concepts
+- **Multi-Agent System**: 5 autonomous agents (Planner, Executor, Monitor, Learner, Coordinator) working collaboratively
+- **CogServer Integration**: Terminal-based cognitive operations (access via `Ctrl+G` in terminal)
+- **Cognitive Processes**: Active reasoning, learning, and attention allocation
+- **Real-time Visualization**: Live AtomSpace and agent activity monitoring
 
 ## What Makes Bolt.new Different
 

@@ -5,6 +5,8 @@ import type { ActionCallbackData, ArtifactCallbackData } from '~/lib/runtime/mes
 import { webcontainer } from '~/lib/webcontainer';
 import type { ITerminal } from '~/types/terminal';
 import { unreachable } from '~/utils/unreachable';
+import { atomSpaceStore } from './atomspace';
+import { cogServerStore } from './cogserver';
 import { EditorStore } from './editor';
 import { FilesStore, type FileMap } from './files';
 import { PreviewsStore } from './previews';
@@ -88,6 +90,9 @@ export class WorkbenchStore {
 
   setDocuments(files: FileMap) {
     this.#editorStore.setDocuments(files);
+
+    // Sync files with AtomSpace for OpenCog integration
+    atomSpaceStore.syncFilesWithAtomSpace(files);
 
     if (this.#filesStore.filesCount > 0 && this.currentDocument.get() === undefined) {
       // we find the first file and select it
