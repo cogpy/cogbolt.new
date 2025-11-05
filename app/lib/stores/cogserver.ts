@@ -4,7 +4,7 @@
  */
 import { atom, type WritableAtom } from 'nanostores';
 import type { ITerminal } from '~/types/terminal';
-import { atomSpaceStore } from './atomspace';
+import { atomSpaceStore, type AtomType } from './atomspace';
 
 export interface CogCommand {
   command: string;
@@ -192,6 +192,156 @@ export class CogServerStore {
         terminal.write(`\r\n  Processes: ${processes} active`);
         terminal.write(`\r\n  Agents: ${activeAgents}/${agents} active`);
         terminal.write(`\r\n  Connected: ${this.connected.get() ? 'Yes' : 'No'}`);
+        terminal.write('\r\n\r\n');
+      },
+    });
+
+    this.registerCommand({
+      command: 'query',
+      description: 'Query AtomSpace using natural language: query <question>',
+      handler: (args, terminal) => {
+        if (args.length === 0) {
+          terminal.write('\r\nUsage: query <question>\r\n');
+          terminal.write('\r\nExamples:\r\n');
+          terminal.write('  query what files are in the atomspace\r\n');
+          terminal.write('  query show me all concepts\r\n');
+          terminal.write('  query what processes are running\r\n\r\n');
+          return;
+        }
+
+        const query = args.join(' ').toLowerCase();
+        terminal.write(`\r\n🔍 Processing query: "${query}"\r\n\r\n`);
+
+        // Natural language query processing
+        if (query.includes('file') || query.includes('files')) {
+          const fileAtoms = atomSpaceStore
+            .getAtomsByType('ConceptNode')
+            .filter((a) => a.metadata?.fileType === 'file');
+          terminal.write(`Found ${fileAtoms.length} file atoms:\r\n`);
+          fileAtoms.slice(0, 10).forEach((atom) => {
+            terminal.write(`  📄 ${atom.name}\r\n`);
+          });
+
+          if (fileAtoms.length > 10) {
+            terminal.write(`  ... and ${fileAtoms.length - 10} more\r\n`);
+          }
+        } else if (query.includes('concept') || query.includes('node')) {
+          const concepts = atomSpaceStore.getAtomsByType('ConceptNode');
+          terminal.write(`Found ${concepts.length} concept nodes:\r\n`);
+          concepts.slice(0, 10).forEach((atom) => {
+            terminal.write(`  🧠 ${atom.name} (strength: ${atom.truthValue.strength.toFixed(2)})\r\n`);
+          });
+
+          if (concepts.length > 10) {
+            terminal.write(`  ... and ${concepts.length - 10} more\r\n`);
+          }
+        } else if (query.includes('process') || query.includes('running')) {
+          const processes = Object.values(atomSpaceStore.processes.get());
+          terminal.write(`Found ${processes.length} cognitive processes:\r\n`);
+          processes.forEach((proc) => {
+            const icon = proc.status === 'active' ? '▶' : proc.status === 'paused' ? '⏸' : '✓';
+            terminal.write(`  ${icon} ${proc.name} (${proc.type}) - ${proc.progress}%\r\n`);
+          });
+        } else if (query.includes('link')) {
+          const links: AtomType[] = ['InheritanceLink', 'SimilarityLink', 'ImplicationLink', 'EvaluationLink'];
+          let totalLinks = 0;
+          links.forEach((linkType) => {
+            const linkAtoms = atomSpaceStore.getAtomsByType(linkType);
+            if (linkAtoms.length > 0) {
+              terminal.write(`  ${linkType}: ${linkAtoms.length}\r\n`);
+              totalLinks += linkAtoms.length;
+            }
+          });
+          terminal.write(`\r\nTotal links: ${totalLinks}\r\n`);
+        } else if (query.includes('stat') || query.includes('summary')) {
+          const stats = atomSpaceStore.getStatistics();
+          terminal.write('=== AtomSpace Statistics ===\r\n');
+          terminal.write(`  Total Atoms: ${stats.totalAtoms}\r\n`);
+          terminal.write(`  Total Processes: ${stats.totalProcesses}\r\n`);
+          terminal.write(`  Active Processes: ${stats.activeProcesses}\r\n`);
+          terminal.write(`  Files Mapped: ${stats.filesMapped}\r\n`);
+          terminal.write(`  Avg Truth Strength: ${stats.averageTruthStrength.toFixed(3)}\r\n`);
+          terminal.write('\r\nAtom Type Distribution:\r\n');
+          Object.entries(stats.atomTypeDistribution).forEach(([type, count]) => {
+            terminal.write(`  ${type}: ${count}\r\n`);
+          });
+        } else {
+          terminal.write('Could not understand query. Try asking about:\r\n');
+          terminal.write('  - files, concepts, processes, links, or statistics\r\n');
+        }
+
+        terminal.write('\r\n');
+      },
+    });
+
+    this.registerCommand({
+      command: 'save',
+      description: 'Save AtomSpace to storage: save [key]',
+      handler: (args, terminal) => {
+        const key = args.length > 0 ? args.join('_') : 'atomspace_snapshot';
+        const success = atomSpaceStore.saveToLocalStorage(key);
+
+        if (success) {
+          const stats = atomSpaceStore.getStatistics();
+          terminal.write(`\r\n✅ AtomSpace saved to localStorage (key: ${key})\r\n`);
+          terminal.write(`   Saved ${stats.totalAtoms} atoms and ${stats.totalProcesses} processes\r\n\r\n`);
+        } else {
+          terminal.write('\r\n❌ Failed to save AtomSpace\r\n\r\n');
+        }
+      },
+    });
+
+    this.registerCommand({
+      command: 'load',
+      description: 'Load AtomSpace from storage: load [key]',
+      handler: (args, terminal) => {
+        const key = args.length > 0 ? args.join('_') : 'atomspace_snapshot';
+        const success = atomSpaceStore.loadFromLocalStorage(key);
+
+        if (success) {
+          const stats = atomSpaceStore.getStatistics();
+          terminal.write(`\r\n✅ AtomSpace loaded from localStorage (key: ${key})\r\n`);
+          terminal.write(`   Loaded ${stats.totalAtoms} atoms and ${stats.totalProcesses} processes\r\n\r\n`);
+        } else {
+          terminal.write(`\r\n❌ Failed to load AtomSpace from key: ${key}\r\n\r\n`);
+        }
+      },
+    });
+
+    this.registerCommand({
+      command: 'export',
+      description: 'Export AtomSpace to JSON file',
+      handler: (args, terminal) => {
+        const jsonData = atomSpaceStore.exportToJSON();
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `atomspace_export_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        const stats = atomSpaceStore.getStatistics();
+        terminal.write(`\r\n📥 Exported ${stats.totalAtoms} atoms to JSON file\r\n\r\n`);
+      },
+    });
+
+    this.registerCommand({
+      command: 'stats',
+      description: 'Show detailed AtomSpace statistics',
+      handler: (args, terminal) => {
+        const stats = atomSpaceStore.getStatistics();
+        terminal.write('\r\n=== AtomSpace Statistics ===\r\n');
+        terminal.write(`\r\n  Total Atoms: ${stats.totalAtoms}`);
+        terminal.write(`\r\n  Total Processes: ${stats.totalProcesses}`);
+        terminal.write(`\r\n  Active Processes: ${stats.activeProcesses}`);
+        terminal.write(`\r\n  Files Mapped: ${stats.filesMapped}`);
+        terminal.write(`\r\n  Average Truth Strength: ${stats.averageTruthStrength.toFixed(3)}`);
+        terminal.write('\r\n\r\nAtom Type Distribution:\r\n');
+        Object.entries(stats.atomTypeDistribution).forEach(([type, count]) => {
+          const percentage = ((count / stats.totalAtoms) * 100).toFixed(1);
+          terminal.write(`\r\n  ${type.padEnd(20)} ${count.toString().padStart(5)} (${percentage}%)`);
+        });
         terminal.write('\r\n\r\n');
       },
     });

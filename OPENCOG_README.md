@@ -244,6 +244,16 @@ atomSpaceStore.linkFileToAtom(filePath, atomId)
 
 // Sync files
 atomSpaceStore.syncFilesWithAtomSpace(files)
+
+// Persistence
+atomSpaceStore.exportToJSON() // Export to JSON string
+atomSpaceStore.importFromJSON(jsonData) // Import from JSON string
+atomSpaceStore.saveToLocalStorage(key?) // Save to browser storage
+atomSpaceStore.loadFromLocalStorage(key?) // Load from browser storage
+atomSpaceStore.enableAutoSave(intervalMs?) // Auto-save periodically
+
+// Statistics
+atomSpaceStore.getStatistics() // Get detailed stats
 ```
 
 ### CogServer API
@@ -263,6 +273,38 @@ cogServerStore.registerCommand({
 cogServerStore.registerAgent('My Agent', 'reasoning', 1.0)
 ```
 
+### CogServer Commands
+
+```bash
+# Core commands
+cog> help                                # Show all commands
+cog> atoms [-v]                          # List atoms (verbose with -v)
+cog> agents                              # List agents
+cog> agent start|stop <name>             # Control agents
+cog> processes                           # List cognitive processes
+cog> create-atom <type> <name>           # Create new atom
+cog> status                              # Show CogServer status
+cog> clear                               # Clear AtomSpace
+
+# New commands (v1.1)
+cog> query <question>                    # Natural language queries
+cog> save [key]                          # Save AtomSpace to storage
+cog> load [key]                          # Load AtomSpace from storage
+cog> export                              # Export to JSON file
+cog> stats                               # Show detailed statistics
+cog> exit                                # Exit CogServer mode
+```
+
+### Natural Language Query Examples
+
+```bash
+cog> query what files are in the atomspace
+cog> query show me all concepts
+cog> query what processes are running
+cog> query show links
+cog> query statistics
+```
+
 ### Multi-Agent API
 
 ```typescript
@@ -277,7 +319,24 @@ multiAgentStore.updateAgentState(agentId, 'thinking')
 
 // Get statistics
 const stats = multiAgentStore.getAgentStats()
+
+// Collaboration (new in v1.1)
+multiAgentStore.createCollaboration([agentId1, agentId2], 'goal')
+multiAgentStore.smartTaskAssignment(task) // Intelligent task assignment
+multiAgentStore.requestHelp(agentId, helpType, context)
+multiAgentStore.shareKnowledge(fromAgentId, toAgentId, atomIds)
+multiAgentStore.analyzeCollaborationEffectiveness()
 ```
+
+## Recent Enhancements (v1.1)
+
+### Completed Features ✅
+- [x] Natural language to AtomSpace queries (via `query` command)
+- [x] Agent collaboration protocols (smart task assignment, help requests)
+- [x] Persistence layer (save/load/export AtomSpace)
+- [x] Knowledge sharing between agents
+- [x] Collaboration effectiveness analytics
+- [x] GitHub Actions for CI/CD and preview deployments
 
 ## Future Enhancements
 
@@ -285,13 +344,13 @@ Planned features for future releases:
 
 - [ ] Pattern mining from code
 - [ ] Automated code generation based on patterns
-- [ ] Natural language to AtomSpace queries
-- [ ] Agent collaboration protocols
 - [ ] Learning from user interactions
 - [ ] Hypergraph visualization
 - [ ] MOSES integration for program learning
 - [ ] PLN (Probabilistic Logic Networks) reasoning
 - [ ] ECAN (Economic Attention Networks)
+- [ ] Advanced cognitive processes (metacognition, self-reflection)
+- [ ] Distributed AtomSpace across multiple instances
 
 ## Contributing
 

@@ -41,6 +41,19 @@ export interface CognitiveProcess {
   timestamp: number;
 }
 
+export interface AtomSpaceExport {
+  version: string;
+  timestamp: number;
+  atoms: Record<string, Atom>;
+  processes: Record<string, CognitiveProcess>;
+  fileAtomMap: Record<string, string>;
+  metadata: {
+    totalAtoms: number;
+    totalProcesses: number;
+    atomTypes: AtomType[];
+  };
+}
+
 export class AtomSpaceStore {
   // Core AtomSpace storage
   atoms: MapStore<Record<string, Atom>> = import.meta.hot?.data.atoms ?? map({});
@@ -209,6 +222,152 @@ export class AtomSpaceStore {
     this.atomsByType.set(new Map());
     this.atomsByName.set(new Map());
     this.fileAtomMap.set({});
+  }
+
+  /**
+   * Export AtomSpace to JSON for persistence
+   */
+  exportToJSON(): string {
+    const exportData: AtomSpaceExport = {
+      version: '1.0.0',
+      timestamp: Date.now(),
+      atoms: this.atoms.get(),
+      processes: this.processes.get(),
+      fileAtomMap: this.fileAtomMap.get(),
+      metadata: {
+        totalAtoms: Object.keys(this.atoms.get()).length,
+        totalProcesses: Object.keys(this.processes.get()).length,
+        atomTypes: Array.from(this.atomsByType.get().keys()),
+      },
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  /**
+   * Import AtomSpace from JSON
+   */
+  importFromJSON(jsonData: string): boolean {
+    try {
+      const data: AtomSpaceExport = JSON.parse(jsonData);
+
+      // Validate version compatibility
+      const supportedVersions = ['1.0.0'];
+
+      if (!supportedVersions.includes(data.version)) {
+        console.error(`Unsupported AtomSpace version: ${data.version}. Supported versions: ${supportedVersions.join(', ')}`);
+        return false;
+      }
+
+      // Clear existing data
+      this.clear();
+
+      // Import atoms
+      if (data.atoms) {
+        this.atoms.set(data.atoms);
+
+        // Rebuild indices
+        const byType = new Map<AtomType, Set<string>>();
+        const byName = new Map<string, string>();
+
+        Object.values(data.atoms).forEach((atom) => {
+          if (!byType.has(atom.type)) {
+            byType.set(atom.type, new Set());
+          }
+          byType.get(atom.type)!.add(atom.id);
+          byName.set(atom.name, atom.id);
+        });
+
+        this.atomsByType.set(byType);
+        this.atomsByName.set(byName);
+      }
+
+      // Import processes
+      if (data.processes) {
+        this.processes.set(data.processes);
+      }
+
+      // Import file mappings
+      if (data.fileAtomMap) {
+        this.fileAtomMap.set(data.fileAtomMap);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to import AtomSpace:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Save AtomSpace to local storage
+   */
+  saveToLocalStorage(key: string = 'atomspace_snapshot'): boolean {
+    try {
+      const jsonData = this.exportToJSON();
+      localStorage.setItem(key, jsonData);
+      return true;
+    } catch (error) {
+      console.error('Failed to save AtomSpace to localStorage:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Load AtomSpace from local storage
+   */
+  loadFromLocalStorage(key: string = 'atomspace_snapshot'): boolean {
+    try {
+      const jsonData = localStorage.getItem(key);
+
+      if (!jsonData) {
+        console.warn('No AtomSpace snapshot found in localStorage');
+        return false;
+      }
+
+      return this.importFromJSON(jsonData);
+    } catch (error) {
+      console.error('Failed to load AtomSpace from localStorage:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Auto-save AtomSpace periodically
+   */
+  enableAutoSave(intervalMs: number = 60000): () => void {
+    const intervalId = setInterval(() => {
+      this.saveToLocalStorage('atomspace_autosave');
+    }, intervalMs);
+
+    // Return cleanup function
+    return () => clearInterval(intervalId);
+  }
+
+  /**
+   * Get statistics about the AtomSpace
+   */
+  getStatistics() {
+    const atoms = this.atoms.get();
+    const processes = this.processes.get();
+    const byType = this.atomsByType.get();
+
+    const typeDistribution: Record<string, number> = {};
+
+    byType.forEach((ids, type) => {
+      typeDistribution[type] = ids.size;
+    });
+
+    return {
+      totalAtoms: Object.keys(atoms).length,
+      totalProcesses: Object.keys(processes).length,
+      atomTypeDistribution: typeDistribution,
+      activeProcesses: Object.values(processes).filter((p) => p.status === 'active').length,
+      averageTruthStrength:
+        Object.values(atoms).reduce((sum, atom) => sum + atom.truthValue.strength, 0) /
+        Math.max(Object.keys(atoms).length, 1),
+      filesMapped: Object.keys(this.fileAtomMap.get()).length,
+    };
   }
 }
 
