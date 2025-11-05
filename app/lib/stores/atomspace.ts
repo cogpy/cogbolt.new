@@ -41,6 +41,19 @@ export interface CognitiveProcess {
   timestamp: number;
 }
 
+export interface AtomSpaceExport {
+  version: string;
+  timestamp: number;
+  atoms: Record<string, Atom>;
+  processes: Record<string, CognitiveProcess>;
+  fileAtomMap: Record<string, string>;
+  metadata: {
+    totalAtoms: number;
+    totalProcesses: number;
+    atomTypes: AtomType[];
+  };
+}
+
 export class AtomSpaceStore {
   // Core AtomSpace storage
   atoms: MapStore<Record<string, Atom>> = import.meta.hot?.data.atoms ?? map({});
@@ -215,7 +228,7 @@ export class AtomSpaceStore {
    * Export AtomSpace to JSON for persistence
    */
   exportToJSON(): string {
-    const exportData = {
+    const exportData: AtomSpaceExport = {
       version: '1.0.0',
       timestamp: Date.now(),
       atoms: this.atoms.get(),
@@ -236,7 +249,7 @@ export class AtomSpaceStore {
    */
   importFromJSON(jsonData: string): boolean {
     try {
-      const data = JSON.parse(jsonData);
+      const data: AtomSpaceExport = JSON.parse(jsonData);
 
       // Validate version compatibility
       if (data.version !== '1.0.0') {
@@ -254,7 +267,7 @@ export class AtomSpaceStore {
         const byType = new Map<AtomType, Set<string>>();
         const byName = new Map<string, string>();
 
-        Object.values(data.atoms).forEach((atom: any) => {
+        Object.values(data.atoms).forEach((atom) => {
           if (!byType.has(atom.type)) {
             byType.set(atom.type, new Set());
           }

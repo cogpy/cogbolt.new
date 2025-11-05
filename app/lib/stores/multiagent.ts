@@ -10,12 +10,27 @@ export type AgentRole = 'planner' | 'executor' | 'monitor' | 'learner' | 'coordi
 
 export type AgentState = 'idle' | 'thinking' | 'acting' | 'communicating' | 'learning';
 
+export type MessageContent =
+  | { type: 'collaboration_started'; collaborationId: string; goal: string }
+  | { type: 'collaboration_ended'; collaborationId: string; success: boolean }
+  | { type: 'knowledge_shared'; atomCount: number }
+  | { helpType: string; context: HelpRequestContext }
+  | string
+  | Record<string, unknown>;
+
+export interface HelpRequestContext {
+  description?: string;
+  priority?: number;
+  relatedAtoms?: string[];
+  metadata?: Record<string, unknown>;
+}
+
 export interface Message {
   id: string;
   from: string;
   to: string;
   type: 'request' | 'response' | 'broadcast' | 'notification';
-  content: any;
+  content: MessageContent;
   timestamp: number;
 }
 
@@ -346,7 +361,7 @@ export class MultiAgentStore {
   /**
    * Send a message within a collaboration
    */
-  sendCollaborationMessage(collaborationId: string, fromAgentId: string, content: any) {
+  sendCollaborationMessage(collaborationId: string, fromAgentId: string, content: MessageContent) {
     const collaboration = this.collaborations.get()[collaborationId];
 
     if (!collaboration) {
@@ -451,7 +466,7 @@ export class MultiAgentStore {
   /**
    * Request help from another agent
    */
-  requestHelp(requestingAgentId: string, helpType: string, context: any): void {
+  requestHelp(requestingAgentId: string, helpType: string, context: HelpRequestContext): void {
     const agents = Object.values(this.agents.get());
 
     // Find best helper based on capabilities
@@ -485,12 +500,13 @@ export class MultiAgentStore {
   /**
    * Share knowledge between agents via AtomSpace
    */
-  shareKnowledge(fromAgentId: string, toAgentId: string, atomIds: string[]): void {
+  shareKnowledge(fromAgentId: string, toAgentId: string, atomIds: string[]): boolean {
     const fromAgent = this.agents.get()[fromAgentId];
     const toAgent = this.agents.get()[toAgentId];
 
     if (!fromAgent || !toAgent) {
-      return;
+      console.warn(`Cannot share knowledge: Agent ${!fromAgent ? fromAgentId : toAgentId} not found`);
+      return false;
     }
 
     // Add atoms to recipient's working memory
@@ -511,6 +527,8 @@ export class MultiAgentStore {
       type: 'knowledge_shared',
       atomCount: atomIds.length,
     });
+
+    return true;
   }
 
   /**

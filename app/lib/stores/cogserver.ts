@@ -4,7 +4,7 @@
  */
 import { atom, type WritableAtom } from 'nanostores';
 import type { ITerminal } from '~/types/terminal';
-import { atomSpaceStore } from './atomspace';
+import { atomSpaceStore, type AtomType } from './atomspace';
 
 export interface CogCommand {
   command: string;
@@ -243,10 +243,10 @@ export class CogServerStore {
             terminal.write(`  ${icon} ${proc.name} (${proc.type}) - ${proc.progress}%\r\n`);
           });
         } else if (query.includes('link')) {
-          const links = ['InheritanceLink', 'SimilarityLink', 'ImplicationLink', 'EvaluationLink'];
+          const links: AtomType[] = ['InheritanceLink', 'SimilarityLink', 'ImplicationLink', 'EvaluationLink'];
           let totalLinks = 0;
           links.forEach((linkType) => {
-            const linkAtoms = atomSpaceStore.getAtomsByType(linkType as any);
+            const linkAtoms = atomSpaceStore.getAtomsByType(linkType);
             if (linkAtoms.length > 0) {
               terminal.write(`  ${linkType}: ${linkAtoms.length}\r\n`);
               totalLinks += linkAtoms.length;
