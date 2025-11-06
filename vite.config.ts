@@ -10,6 +10,9 @@ export default defineConfig((config) => {
     build: {
       target: 'esnext',
     },
+    ssr: {
+      noExternal: ['istextorbinary'],
+    },
     plugins: [
       nodePolyfills({
         include: ['path', 'buffer'],
