@@ -6,6 +6,11 @@ import { renderHeadToString } from 'remix-island';
 import { Head } from './root';
 import { themeStore } from '~/lib/stores/theme';
 
+/**
+ * SSR entry point for Cloudflare Workers/Pages.
+ * Error handling for unhandled rejections is built into the Cloudflare Workers runtime.
+ * Additional error boundaries are configured via onError callback in renderToReadableStream.
+ */
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
@@ -16,7 +21,7 @@ export default async function handleRequest(
   const readable = await renderToReadableStream(<RemixServer context={remixContext} url={request.url} />, {
     signal: request.signal,
     onError(error: unknown) {
-      console.error(error);
+      console.error('SSR Error:', error);
       responseStatusCode = 500;
     },
   });
