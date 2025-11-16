@@ -1,8 +1,8 @@
 ---
-name: a
-description: b
+name: cogbolt
+description: cogbolt
 ---
 
-# My Agent
+# CogBolt
 
 Describe what your agent does here...
